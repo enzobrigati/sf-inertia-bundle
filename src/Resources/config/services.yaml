@@ -1,0 +1,102 @@
+services:
+  EnzoBrigati\InertiaBundle\Service\InertiaInterface: '@inertia.service'
+
+  inertia.service:
+    class: EnzoBrigati\InertiaBundle\Service\InertiaService
+    public: false
+    arguments:
+      $engine: '@twig'
+      $requestStack: '@request_stack'
+      $serializer: '@serializer'
+      $componentResolver: '@inertia.component_resolver.default'
+      $componentLocator: '@inertia.component_locator.default'
+      $rootView: '%inertia.root_view%'
+      $propProviders: !tagged_iterator inertia.prop_provider
+
+  inertia.subscriber.response:
+    class: EnzoBrigati\InertiaBundle\EventSubscriber\InertiaResponseSubscriber
+    public: false
+    tags:
+      - { name: kernel.event_listener, event: kernel.response }
+    arguments:
+      $debug: '%kernel.debug%'
+
+  inertia.subscriber.version:
+    class: EnzoBrigati\InertiaBundle\EventSubscriber\InertiaVersionSubscriber
+    public: false
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, priority: -255 }
+    arguments:
+      $inertia: '@inertia.service'
+
+  inertia.subscriber.csrf:
+    class: EnzoBrigati\InertiaBundle\EventSubscriber\InertiaCsrfSubscriber
+    public: false
+    tags:
+      - { name: kernel.event_listener, event: kernel.request }
+      - { name: kernel.event_listener, event: kernel.response }
+    arguments:
+      $csrfTokenManager: '@security.csrf.token_manager'
+      $responseFactory: '@inertia.response_factory'
+      $csrfEnabled: '%inertia.csrf.enabled%'
+      $csrfTokenName: '%inertia.csrf.token_name%'
+      $csrfHeaderName: '%inertia.csrf.header_name%'
+      $csrfCookieName: '%inertia.csrf.cookie.name%'
+      $csrfCookieExpire: '%inertia.csrf.cookie.expire%'
+      $csrfCookiePath: '%inertia.csrf.cookie.path%'
+      $csrfCookieDomain: '%inertia.csrf.cookie.domain%'
+      $csrfCookieSecure: '%inertia.csrf.cookie.secure%'
+      $csrfCookieRaw: '%inertia.csrf.cookie.raw%'
+      $csrfCookieSamesite: '%inertia.csrf.cookie.samesite%'
+
+  inertia.subscriber.exception:
+    class: EnzoBrigati\InertiaBundle\EventSubscriber\InertiaExceptionSubscriber
+    public: false
+    tags:
+      - { name: kernel.event_listener, event: kernel.exception }
+    arguments:
+      $responseFactory: '@inertia.response_factory'
+      $enabled: '%inertia.exception.enabled%'
+
+  inertia.component_resolver.default:
+    class: EnzoBrigati\InertiaBundle\ComponentResolver\DefaultComponentResolver
+    public: false
+
+  inertia.component_locator.default:
+    class: EnzoBrigati\InertiaBundle\ComponentLocator\DefaultComponentLocator
+    public: false
+
+  inertia.prop_provider.errors:
+    class: EnzoBrigati\InertiaBundle\PropProvider\ErrorsPropProvider
+    public: false
+    tags:
+      - { name: inertia.prop_provider }
+
+  inertia.response_factory:
+    class: EnzoBrigati\InertiaBundle\ResponseFactory\InertiaResponseFactory
+    public: false
+    arguments:
+      $responseFactories: !tagged_iterator { tag: inertia.response_factory, default_priority_method: getPriority }
+
+  inertia.response_factory.invalid_csrf:
+    class: EnzoBrigati\InertiaBundle\ResponseFactory\InvalidCsrfTokenResponseFactory
+    public: false
+    tags:
+      - { name: inertia.response_factory }
+
+  inertia.response_factory.validation_failed:
+    class: EnzoBrigati\InertiaBundle\ResponseFactory\ValidationFailedResponseFactory
+    public: false
+    tags:
+      - { name: inertia.response_factory }
+    arguments:
+      $translator: '@translator'
+
+  inertia.twig:
+    class: EnzoBrigati\InertiaBundle\Twig\InertiaTwigExtension
+    public: false
+    arguments:
+      $inertia: '@inertia.service'
+    tags:
+      - { name: twig.extension }
+
