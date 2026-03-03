@@ -6,3 +6,4 @@ composer.lock
 yarn.lock
 vendor
 var
+/packages/
