@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class ModalResponseTest extends TestCase
@@ -145,22 +146,18 @@ class ModalResponseTest extends TestCase
     }
 
     #[Test]
-    public function it_falls_back_to_render_for_non_inertia_requests_without_router(): void
+    public function it_throws_404_for_non_inertia_direct_access(): void
     {
         $this->setupInertiaForModal();
-
-        $htmlResponse = new Response('<html><body>Page</body></html>');
-        $this->inertia->method('render')->willReturn($htmlResponse);
 
         $modal = new Modal('Users/Edit', [], $this->inertia, $this->httpKernel);
 
         $request = Request::create('/users/1/edit');
-        // No X-Inertia header, no use-router header
+        // No X-Inertia header, no use-router header → direct browser access
 
-        $response = $modal->toResponse($request);
+        $this->expectException(NotFoundHttpException::class);
 
-        // Should fall back to normal render
-        $this->assertNotInstanceOf(JsonResponse::class, $response);
+        $modal->toResponse($request);
     }
 
     #[Test]

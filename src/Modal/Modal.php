@@ -7,6 +7,7 @@ namespace EnzoBrigati\InertiaBundle\Modal;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use EnzoBrigati\InertiaBundle\InertiaHeaders;
 use EnzoBrigati\InertiaBundle\Service\InertiaInterface;
@@ -46,8 +47,7 @@ class Modal
                 return $this->extractMeta(new JsonResponse($serialized));
             }
 
-            // Fallback for non-Inertia requests: render normally
-            return $this->inertia->render($this->component, $this->props);
+            throw new NotFoundHttpException();
         }
 
         // Normal case: dispatch sub-request to base URL
