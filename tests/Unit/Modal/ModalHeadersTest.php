@@ -106,12 +106,12 @@ class ModalHeadersTest extends TestCase
     }
 
     #[Test]
-    public function it_returns_true_for_use_router_when_header_is_absent(): void
+    public function it_returns_false_for_use_router_when_header_is_absent(): void
     {
         $request = Request::create('/test');
 
         $headers = ModalHeaders::fromRequest($request);
 
-        $this->assertTrue($headers->shouldUseRouter());
+        $this->assertFalse($headers->shouldUseRouter());
     }
 }

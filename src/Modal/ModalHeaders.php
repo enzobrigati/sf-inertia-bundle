@@ -41,6 +41,10 @@ readonly class ModalHeaders
 
     public function shouldUseRouter(): bool
     {
+        if (! $this->headers->has(self::X_INERTIAUI_MODAL_USE_ROUTER)) {
+            return false;
+        }
+
         $value = $this->headers->get(self::X_INERTIAUI_MODAL_USE_ROUTER);
 
         return ! in_array($value, ['0', 0], true);
