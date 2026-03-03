@@ -9,6 +9,11 @@
             "EnzoBrigati\\InertiaBundle\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "EnzoBrigati\\InertiaBundle\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "php": "^8.3",
         "ext-json": "*",
@@ -30,9 +35,13 @@
         "symfony/validator": "^7.0|^8.0",
         "symfony/var-dumper": "^7.0|^8.0",
         "symfony/yaml": "^7.0|^8.0",
-        "doctrine/orm": "^3.3"
+        "doctrine/orm": "^3.3",
+        "phpunit/phpunit": "^11.0"
     },
     "scripts": {
+        "test": [
+            "phpunit"
+        ],
         "fix": [
             "@fix:phpcs",
             "@fix:phpstan"

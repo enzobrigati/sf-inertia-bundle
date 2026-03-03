@@ -8,6 +8,7 @@ use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExcep
 use Twig\Error\Error as TwigError;
 use EnzoBrigati\InertiaBundle\Exception\InertiaExceptionInterface;
 use EnzoBrigati\InertiaBundle\InertiaPage;
+use EnzoBrigati\InertiaBundle\Modal\Modal;
 
 interface InertiaInterface
 {
@@ -118,4 +119,28 @@ interface InertiaInterface
      * @throws SerializerException
      */
     public function serialize(InertiaPage $page, array $context = []): string;
+
+    /**
+     * Create a modal response.
+     *
+     * @param  string               $component page component name
+     * @param  array<string, mixed> $props     parameters for the modal component
+     */
+    public function modal(string $component, array $props = []): Modal;
+
+    /**
+     * Build an InertiaPage without rendering it.
+     *
+     * @param  string               $component page component name
+     * @param  array<string, mixed> $props     parameters for the page component
+     * @param  string|null          $url       URL of the page
+     * @throws InertiaExceptionInterface
+     */
+    public function buildPage(
+        string $component,
+        array $props = [],
+        string|null $url = null,
+        bool $clearHistory = false,
+        bool $encryptHistory = false,
+    ): InertiaPage;
 }

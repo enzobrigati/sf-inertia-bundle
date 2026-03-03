@@ -8,6 +8,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\AbstractObjectNormalizer;
@@ -21,6 +22,7 @@ use EnzoBrigati\InertiaBundle\Exception\InertiaExceptionInterface;
 use EnzoBrigati\InertiaBundle\InertiaFlash;
 use EnzoBrigati\InertiaBundle\InertiaHeaders;
 use EnzoBrigati\InertiaBundle\InertiaPage;
+use EnzoBrigati\InertiaBundle\Modal\Modal;
 use EnzoBrigati\InertiaBundle\Prop\PropInterface;
 use EnzoBrigati\InertiaBundle\PropProvider\InertiaPropProviderInterface;
 
@@ -46,6 +48,7 @@ class InertiaService implements InertiaInterface
         protected readonly InertiaComponentLocatorInterface $componentLocator,
         string $rootView,
         protected readonly iterable $propProviders = [],
+        protected readonly ?HttpKernelInterface $httpKernel = null,
     ) {
         $this->setRootView($rootView);
     }
@@ -143,29 +146,10 @@ class InertiaService implements InertiaInterface
         bool $clearHistory = false,
         bool $encryptHistory = false,
     ): Response {
-        $component = $this->componentResolver->resolve($component);
-
-        if ($this->componentLocator->exists($component) === false) {
-            throw new ComponentNotFoundException($component);
-        }
-
-        $request = $this->getRequest();
-        $headers = InertiaHeaders::fromRequest($request);
-        $flash = InertiaFlash::fromRequest($request);
-        $url = $url ?? $request->getRequestUri() ?: null;
+        $page = $this->buildPage($component, $props, $url, $clearHistory, $encryptHistory);
         $viewData = [...$this->viewData, ...$viewData];
-        $props = [...$this->getProvidedProps($headers, $flash), ...$this->props, ...$props];
-        $page = new InertiaPage(
-            $headers,
-            $component,
-            $props,
-            $url,
-            $this->version,
-            $clearHistory,
-            $encryptHistory,
-        );
 
-        if ($headers->isInertiaRequest()) {
+        if ($page->headers->isInertiaRequest()) {
             return new JsonResponse(
                 $this->serialize($page, $context),
                 Response::HTTP_OK,
@@ -184,6 +168,45 @@ class InertiaService implements InertiaInterface
         ));
 
         return $response;
+    }
+
+    public function buildPage(
+        string $component,
+        array $props = [],
+        string|null $url = null,
+        bool $clearHistory = false,
+        bool $encryptHistory = false,
+    ): InertiaPage {
+        $component = $this->componentResolver->resolve($component);
+
+        if ($this->componentLocator->exists($component) === false) {
+            throw new ComponentNotFoundException($component);
+        }
+
+        $request = $this->getRequest();
+        $headers = InertiaHeaders::fromRequest($request);
+        $flash = InertiaFlash::fromRequest($request);
+        $url = $url ?? $request->getRequestUri() ?: null;
+        $props = [...$this->getProvidedProps($headers, $flash), ...$this->props, ...$props];
+
+        return new InertiaPage(
+            $headers,
+            $component,
+            $props,
+            $url,
+            $this->version,
+            $clearHistory,
+            $encryptHistory,
+        );
+    }
+
+    public function modal(string $component, array $props = []): Modal
+    {
+        if ($this->httpKernel === null) {
+            throw new LogicException('HttpKernelInterface is required to use modals. Make sure the http_kernel service is injected.');
+        }
+
+        return new Modal($component, $props, $this, $this->httpKernel);
     }
 
     /**

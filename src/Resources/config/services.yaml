@@ -12,6 +12,15 @@ services:
       $componentLocator: '@inertia.component_locator.default'
       $rootView: '%inertia.root_view%'
       $propProviders: !tagged_iterator inertia.prop_provider
+      $httpKernel: '@http_kernel'
+
+  inertia.modal.subscriber.redirect:
+    class: EnzoBrigati\InertiaBundle\Modal\ModalRedirectSubscriber
+    public: false
+    arguments:
+      $redirectToBaseUrl: '%inertia.modal.redirect_to_base_url%'
+    tags:
+      - { name: kernel.event_listener, event: kernel.response, priority: 10 }
 
   inertia.subscriber.response:
     class: EnzoBrigati\InertiaBundle\EventSubscriber\InertiaResponseSubscriber
