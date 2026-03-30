@@ -25,8 +25,9 @@ use EnzoBrigati\InertiaBundle\InertiaPage;
 use EnzoBrigati\InertiaBundle\Modal\Modal;
 use EnzoBrigati\InertiaBundle\Prop\PropInterface;
 use EnzoBrigati\InertiaBundle\PropProvider\InertiaPropProviderInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
-class InertiaService implements InertiaInterface
+class InertiaService implements InertiaInterface, ResetInterface
 {
     /** @var array<string, mixed> */
     protected array $props = [];
@@ -51,6 +52,13 @@ class InertiaService implements InertiaInterface
         protected readonly ?HttpKernelInterface $httpKernel = null,
     ) {
         $this->setRootView($rootView);
+    }
+
+    public function reset(): void
+    {
+        $this->props = [];
+        $this->viewData = [];
+        $this->context = [];
     }
 
     public function share(string $key, mixed $value = null): void

@@ -86,6 +86,12 @@ interface InertiaInterface
     public function getRootView(): string|null;
 
     /**
+     * Reset all mutable state (shared props, viewData, context).
+     * Called automatically between requests in long-running processes (FrankenPHP, Swoole).
+     */
+    public function reset(): void;
+
+    /**
      * Force a regular synchronous redirect.
      */
     public function location(RedirectResponse|string $url): Response;
